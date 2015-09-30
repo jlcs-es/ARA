@@ -1,10 +1,10 @@
 autostart = False
-version = 0.8.6
+version = 0.8.7
 [127.0.0.1:7200]
     workingdir = /tmp
     udp = 10001
     [[7200]]
-        image = /home/alumno/GNS3/images/c7200-jk9s-mz.124-13b.image
+        image = /home/joseluis/GNS3/Images/c7200-jk9s-mz.124-13b.image
         sparsemem = True
         ghostios = True
     [[ROUTER AR1]]
@@ -37,8 +37,8 @@ version = 0.8.6
         f1/0 = SW1 1
         slot2 = PA-8T
         s2/0 = R2 s2/0
-        x = -201.0
-        y = -95.0
+        x = -202.0
+        y = -97.0
         z = 1.0
     [[ROUTER R2]]
         console = 2102

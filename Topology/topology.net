@@ -78,19 +78,19 @@ version = 0.8.7
 [GNS3-DATA]
     configs = configs
     [[NOTE 1]]
-        text = "Red home\nAS #13"
-        x = -231.0
-        y = -197.5
-        color = "#3c3c3c"
+        text = "2CAE::/64"
+        x = 213.0
+        y = 192.5
+        color = "#d3dae3"
     [[NOTE 2]]
-        text = "Red visitada\nAS #50"
-        x = -21.0
-        y = 59.5
-        color = "#3c3c3c"
+        text = "2CAE:0:1::/64"
+        x = -141.0
+        y = 188.5
+        color = "#d3dae3"
     [[NOTE 3]]
-        text = "3FE0::/64"
-        x = 214.0
-        y = -132.5
+        text = "3FE0:0:1::/64"
+        x = -68.0
+        y = -55.5
         color = "#d3dae3"
     [[NOTE 4]]
         text = "2001:ABCD::/64"
@@ -98,9 +98,9 @@ version = 0.8.7
         y = -0.5
         color = "#d3dae3"
     [[NOTE 5]]
-        text = "3FE0:0:1::/64"
-        x = -68.0
-        y = -55.5
+        text = "MN"
+        x = 181.0
+        y = -15.5
         color = "#d3dae3"
     [[NOTE 6]]
         text = "HA"
@@ -108,20 +108,20 @@ version = 0.8.7
         y = -109.5
         color = "#d3dae3"
     [[NOTE 7]]
-        text = "MN"
-        x = 181.0
-        y = -15.5
-        color = "#d3dae3"
+        text = "Red home\nAS #13"
+        x = -231.0
+        y = -197.5
+        color = "#3c3c3c"
     [[NOTE 8]]
-        text = "2CAE:0:1::/64"
-        x = -141.0
-        y = 188.5
+        text = "3FE0::/64"
+        x = 214.0
+        y = -132.5
         color = "#d3dae3"
     [[NOTE 9]]
-        text = "2CAE::/64"
-        x = 213.0
-        y = 192.5
-        color = "#d3dae3"
+        text = "Red visitada\nAS #50"
+        x = -21.0
+        y = 59.5
+        color = "#3c3c3c"
     [[NOTE 10]]
         text = "2"
         x = -4.49886940177
@@ -208,13 +208,13 @@ version = 0.8.7
         color = "#d3dae3"
     [[SHAPE 1]]
         type = rectangle
-        x = -237.0
-        y = -196.0
-        width = 538.0
-        height = 159.0
-    [[SHAPE 2]]
-        type = rectangle
         x = -236.0
         y = 54.0
         width = 541.0
         height = 138.0
+    [[SHAPE 2]]
+        type = rectangle
+        x = -237.0
+        y = -196.0
+        width = 538.0
+        height = 159.0

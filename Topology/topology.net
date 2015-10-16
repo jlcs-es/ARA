@@ -56,11 +56,13 @@ version = 0.8.7
     [[ETHSW SW1]]
         1 = access 1 R1 f1/0
         2 = access 1 AR1 f1/0
+        3 = access 1 CN e0
         x = -51.5
         y = -89.0
         z = 1.0
     [[ETHSW SW3]]
         1 = access 1 AR2 f2/0
+        2 = access 1 MN e1
         x = 214.5
         y = 149.0
         z = 1.0
@@ -72,35 +74,57 @@ version = 0.8.7
         z = 1.0
     [[ETHSW SW4]]
         2 = access 1 AR1 f2/0
+        3 = access 1 MN e0
         x = 219.5
         y = -88.0
         z = 1.0
+[vbox 127.0.0.1:11525]
+    workingdir = /tmp
+    udp = 20900
+    [[VBoxDevice]]
+        image = US14 - GNS3
+        nics = 2
+        first_nic_managed = False
+    [[VBOX MN]]
+        image = US14 - GNS3 MN
+        e0 = SW4 3
+        e1 = SW3 2
+        x = 315.396536344
+        y = -25.9644660941
+        z = 1.0
+    [[VBOX CN]]
+        e0 = SW1 3
+        x = 36.7964645563
+        y = -184.35638508
+        z = 1.0
 [GNS3-DATA]
     configs = configs
+    m11 = 1.41421356237
+    m22 = 1.41421356237
     [[NOTE 1]]
-        text = "3FE0:0:1::/64"
-        x = -68.0
-        y = -55.5
+        text = "MN"
+        x = 181.0
+        y = -15.5
         color = "#d3dae3"
     [[NOTE 2]]
-        text = "Red home\nAS #13"
-        x = -231.0
-        y = -197.5
-        color = "#3c3c3c"
+        text = "2CAE::/64"
+        x = 213.0
+        y = 192.5
+        color = "#d3dae3"
     [[NOTE 3]]
-        text = "Red visitada\nAS #50"
-        x = -21.0
-        y = 59.5
-        color = "#3c3c3c"
+        text = "2CAE:0:1::/64"
+        x = -141.0
+        y = 188.5
+        color = "#d3dae3"
     [[NOTE 4]]
         text = "2001:ABCD::/64"
         x = -310.0
         y = -0.5
         color = "#d3dae3"
     [[NOTE 5]]
-        text = "2CAE:0:1::/64"
-        x = -141.0
-        y = 188.5
+        text = "3FE0::/64"
+        x = 214.0
+        y = -132.5
         color = "#d3dae3"
     [[NOTE 6]]
         text = "HA"
@@ -108,20 +132,20 @@ version = 0.8.7
         y = -109.5
         color = "#d3dae3"
     [[NOTE 7]]
-        text = "3FE0::/64"
-        x = 214.0
-        y = -132.5
+        text = "3FE0:0:1::/64"
+        x = -68.0
+        y = -55.5
         color = "#d3dae3"
     [[NOTE 8]]
-        text = "2CAE::/64"
-        x = 213.0
-        y = 192.5
-        color = "#d3dae3"
+        text = "Red visitada\nAS #50"
+        x = -21.0
+        y = 59.5
+        color = "#3c3c3c"
     [[NOTE 9]]
-        text = "MN"
-        x = 181.0
-        y = -15.5
-        color = "#d3dae3"
+        text = "Red home\nAS #13"
+        x = -231.0
+        y = -197.5
+        color = "#3c3c3c"
     [[NOTE 10]]
         text = "2"
         x = -4.49886940177
@@ -208,13 +232,13 @@ version = 0.8.7
         color = "#d3dae3"
     [[SHAPE 1]]
         type = rectangle
+        x = -235.585786438
+        y = -204.353859763
+        width = 538.0
+        height = 172.303607231
+    [[SHAPE 2]]
+        type = rectangle
         x = -236.0
         y = 54.0
         width = 541.0
         height = 138.0
-    [[SHAPE 2]]
-        type = rectangle
-        x = -237.0
-        y = -196.0
-        width = 538.0
-        height = 159.0

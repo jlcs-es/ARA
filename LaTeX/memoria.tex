@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage[spanish]{babel}
+\usepackage[onehalfspacing]{setspace}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -38,24 +39,151 @@
 }
 
 
-\author{José Luis Cánovas Sánchez}
-\title{ARQUITECTURAS DE REDES AVANZADAS\\PRÁCTICA 1\\ 2015/2016}
+\author{José Luis Cánovas Sánchez\\joseluis.canovas2@um.es\\48636907A}
+\title{ARQUITECTURAS DE REDES AVANZADAS\\PRÁCTICA 1\\ ENERO 2015}
 \date{}
 \begin{document}
 \maketitle
 
 \begin{abstract}
-	En este informe se redacta el desarrollo e instrucciones para llevar a cabo las configuraciones de varios servicios descritos durante el desarrollo de la asignatura de Servicios Telemáticos. Tenemos varios servicios que para funcionar dependen de otros, de modo que se podría intentar ir creando cada cosa según se necesite, o bien suponer que el servicio del que se depende es totalmente funcional y, de este modo, ir configurando cada servicio completamente, y una vez todos los servicios de los que se depende están configurados, poner en marcha el subsistema que forman. En este artículo seguiremos este segundo método, de modo que veremos una evolución del sistema: configuración, puesta en marcha, estudio de los servicios y protocolos utilizados.
+	En este informe se redacta el desarrollo usando la herramienta GNS3 para el despliegue del escenario de red IPv6 con movilidad.
+	%TODO: terminar
 \end{abstract}
 
 \tableofcontents
-\section{Introducción}
-El sistema a desarrollar será el del dominio st.um, el cual consta en principio de dos equipos o \textit{hosts}, cada uno con un papel bien definido: el primer host será el servidor, con FQDN (\textit{fully qualified domain name})  servidor.st.um, y actuará como servidor de servicios de DNS, NTP, web (HTTP/HTTPS) y correo (SMTP/POP); por otro lado tenemos al host cliente, con FQDN cliente.st.um, que hará uso de servidor.st.um para comprobar que funcionan correctamente.\par
+\section{Topología inicial}
+Partimos en este proyecto creando una nueva topología en GNS3 equivalente a la del enunciado y que se puede ver en la imagen inferior. Para los routers se utiliza la ios del modelo C7200 de CISCO, con soporte para IPv6. Para los hosts, una imagen linux sin interfaz gráfica y con gestor de paquetes para poder instalar el soporte de mobile IPv6.\par
 
 \begin{center} 
 	\includegraphics[scale=0.5]{images/topologyInic.png}
 \end{center}
 
-Parece conveniente hacer una introducción sencilla de cada protocolo de modo que cuando lleguemos a la configuración, tengamos una visión general del camino que estamos tomando.\par
+La configuración básica para que todos los dispositivos y redes tengan conectividad IPv6 entre ellas se puede realizar por medio del fichero de configuración del router directamente, y su equivalente en comandos de la terminal suelen ser las mismas líneas aplicadas en el nivel \textit{configure terminal}. En cuanto a los hosts, como utilizan la autoconfiguración de IPv6 no hace falta configurar manualmente nada.
+\\
+
+Veamos primero la configuración común de todos los routers:
+
+Para activar IPv6 es necesario indicarlo antes de la configuración de las interfaces con \textit{ipv6 unicast-routing}. En cada interfaz que activemos, debemos indicar \textit{ipv6 enable} y la orden \textit{ipv6 address diripv6}, donde \textit{diripv6} es la dirección IPv6 asignada manualmente, o el prefijo de red seguido de \textit{eui-64} para permitir que la interfaz se autoconfigure su dirección.
+
+Con esto tendríamos activado IPv6 en cada router, pero al intentar hacer \textit{ping} a una interfaz de otra red, vemos que no se recibe respuesta. Esto es porque no hay información en las tablas de rutas más que de las redes conectadas directamente a las interfaces de cada router.
+
+Para cada Sistema Autónomo vamos a usar OSPF con soporte de IPv6. El diseño será de una única área 0 para todo el AS, lo que incluye las subredes en AS\#13 3FE0:0:1::/64 y 3Fe0::/64, y en AS\#50 las subredes 2CAE:0:1::/64 y 2CAE::64. Para ello, debemos activar OSPF en las dos interfaces de los routers AR1 y AR2, y en la interfaz FastEthernet1/0 de los routers R1 y R2 que se pueden ver en la figura de la topología más arriba.                                                                         
+
+Las órdenes para activar OSPF en cada router son:
+
+Dentro de una interfaz que deba soportar OSPF (está dentro del área 0):
+\begin{lstlisting}
+ipv6 ospf 100 area 0
+\end{lstlisting}
+
+Tras la configuración de las interfaces:
+\begin{lstlisting}
+ipv6 router ospf 100
+	router-id a.b.c.d
+\end{lstlisting}
+
+Donde \textit{a.b.c.d} es un valor identificador del router con 32 bits que se puede escribir como una dirección IPv4. Para cada router hemos elegido los identificadores \textit{1.1.1.1}, \textit{2.2.2.2}, \textit{3.3.3.3} y \textit{4.4.4.4} para R1, R2, AR1 y AR2 respectivamente. El valor 100 es indicador del proceso OSPF en el router y puede tomar cualquier otro valor, el tomar 100 es arbitrario.
+
+Llegados a este punto, tenemos conectividad dentro de cada área, de modo que ahora un ping desde R1 a la interfaz de AR1 en la subred 3FE0::/64 funciona, pero de AR1 a R2 o AR2 no, porque no se conoce la ruta. Ahora mismo sólo R1 y R2 podrían hacer ping a las interfaces de la red 2001:ABCD::/64.
+
+Para solucionarlo la forma más rápida es añadir una ruta estática en R1 y R2 a las redes del otro AS con la línea: \textit{ipv6 route 2CAE::/42 Serial2/0} en R1, y la equivalente \textit{ipv6 route 3FE0::/42 Serial2/0} en R2. Finalmente, en la configuración de OSPF, tras el \textit{router-id} añadimos la línea \textit{redistribute static}, sólo en R1 y R2, para que comuniquen con LSA5 (rutas fuera de dominio) que para alcanzar el otro AS a través de ellos hay una ruta.
+\\
+
+Ahora sí se puede realizar un ping desde cualquier dispositivo a cualquier otro, una vez OSPF ha convergido y compartido todos los mensajes. Pero como la mejora para configurar BGP entre R1 y R2 sobrescribe la configuración estática, mostraré las pruebas en el apartado siguiente.
+
+
+\section{Configuración opcional BGP}
+En los routers R1 y R2 debemos comentar o borrar las líneas de las rutas estáticas y su distribución en OSPF. A continuación, tras la configuración de OSPF podemos escribir la de BGP:
+\\
+
+Para R1:
+\begin{lstlisting}
+router bgp 13
+	bgp router-id 1.1.1.1
+	no bgp default ipv4-unicast
+	!--- Without configuring ""no bgp default ipv4-unicast"" only IPv4 will be !--- advertised
+	bgp log-neighbor-changes
+	neighbor 2001:ABCD::2 remote-as 50
+!
+address-family ipv6
+	neighbor 2001:ABCD::2 activate
+	network 3FE0:0:1::/64
+	network 3FE0::/64
+exit-address-family
+\end{lstlisting}
+
+Donde 13 indica el número de Sistema Autónomo y 1.1.1.1 es un identificador equivalente al de OSPF, en este caso elegimos el mismo. La línea \textit{no bgp default ipv4-unicast} es necesaria para permitir las rutas con IPv6. La primera línea de \textit{neighbor} indica que en la interfaz de dirección 2001:ABCD::2, que corresponde a la IPv6 fija de R2, se encuentra el AS 50. A continuación, en el bloque \textit{address-family} activamos dicho vecino e indicamos que se deben anunciar las redes 3FE0:0:1::/64 y 3FE0::/64, correspondientes a las del AS 13 de la topología dada.
+
+Para R2 la configuración sería equivalente cambiando los valores del 13 a 50 para el AS, el del \textit{router-id}, la dirección de R1 y las subredes a compartir.
+\\
+
+Con esto R1 y R2 conocerían las redes de cada AS, pero AR1 y AR2 todavía no, pues no hablan BGP. Sin embargo, sí hablan OSPF y añadiendo la línea en R1 y R2 \textit{redistribute bgp 10} en la configuración de OSPF (donde antes \textit{redistribute static}) se comunicarán las rutas externas con métrica 10 a los routers de cada AS. Podemos observarlo en la tabla de rutas de AR2, por ejemplo:
+
+\begin{lstlisting}
+Router>show ipv6 route
+IPv6 Routing Table - 8 entries
+Codes: C - Connected, L - Local, S - Static, R - RIP, B - BGP
+U - Per-user Static route
+I1 - ISIS L1, I2 - ISIS L2, IA - ISIS interarea, IS - ISIS summary
+O - OSPF intra, OI - OSPF inter, OE1 - OSPF ext 1, OE2 - OSPF ext 2
+ON1 - OSPF NSSA ext 1, ON2 - OSPF NSSA ext 2
+C   2CAE::/64 [0/0]
+via ::, FastEthernet2/0
+L   2CAE::C801:1AFF:FE5F:38/128 [0/0]
+via ::, FastEthernet2/0
+C   2CAE:0:1::/64 [0/0]
+via ::, FastEthernet1/0
+L   2CAE:0:1:0:C801:1AFF:FE5F:1C/128 [0/0]
+via ::, FastEthernet1/0
+OE2  3FE0::/64 [110/2]
+via FE80::C803:1AFF:FE5F:1C, FastEthernet1/0
+OE2  3FE0:0:1::/64 [110/1]
+via FE80::C803:1AFF:FE5F:1C, FastEthernet1/0
+L   FE80::/10 [0/0]
+via ::, Null0
+L   FF00::/8 [0/0]
+via ::, Null0
+\end{lstlisting}                                                                                
+
+En las líneas 16 a 19 se puede observar rutas a las redes del AS 13 conocidas por OSPF de rutas externas.
+\\
+
+Ahora las pruebas con ping y traceroute:
+
+Ping y traceroute de AR1 a AR2 en la interfaz de la subred 2CAE::/64:
+\begin{lstlisting}
+Router>ping 2CAE::C801:1AFF:FE5F:38
+
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 2CAE::C801:1AFF:FE5F:38, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 60/65/84 ms
+\end{lstlisting}
+\begin{lstlisting}
+Router>traceroute 2CAE::C801:1AFF:FE5F:38
+
+Type escape sequence to abort.
+Tracing the route to 2CAE::C801:1AFF:FE5F:38
+
+1 3FE0:0:1:0:C802:1AFF:FE5F:1C 16 msec 20 msec 20 msec
+2 2001:ABCD::2 40 msec 40 msec 40 msec
+3 2CAE::C801:1AFF:FE5F:38 60 msec 60 msec 60 msec
+Router>
+\end{lstlisting}
+                                                       
+Donde 3FE0:0:1:0:C802:1AFF:FE5F:1C es la IP autoconfigurada de R1 en la subred 3FE0:0:1::/64, 2001:ABCD::2 es la IP manual de R2 en la subred 2001:ABCD::/64 y finalmente 2CAE::C801:1AFF:FE5F:38 la IP de AR2.
+
+Considerando que para llegar de AR1 a AR2 con ping y traceroute todos los routers deben conocer el camino en un sentido u otro, con esta única prueba podemos concluir que la configuración de la topología básica con OSPF y BGP es correcta.
+
+
+\section{NEXT}
+
+
+
+\begin{thebibliography}{99}
+	\bibitem{apuntes}
+	Apuntes
+\end{thebibliography}
+
 
 \end{document}

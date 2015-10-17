@@ -15,8 +15,8 @@ version = 0.8.7
         f1/0 = SW1 2
         slot2 = PA-FE-TX
         f2/0 = SW4 2
-        x = 89.0
-        y = -95.0
+        x = 88.2928932188
+        y = -95.7071067812
         z = 1.0
     [[ROUTER AR2]]
         console = 2105
@@ -102,19 +102,19 @@ version = 0.8.7
     m11 = 1.41421356237
     m22 = 1.41421356237
     [[NOTE 1]]
-        text = "MN"
-        x = 181.0
-        y = -15.5
-        color = "#d3dae3"
+        text = "Red home\nAS #13"
+        x = -231.0
+        y = -197.5
+        color = "#3c3c3c"
     [[NOTE 2]]
-        text = "2CAE::/64"
-        x = 213.0
-        y = 192.5
-        color = "#d3dae3"
+        text = "Red visitada\nAS #50"
+        x = -21.0
+        y = 59.5
+        color = "#3c3c3c"
     [[NOTE 3]]
-        text = "2CAE:0:1::/64"
-        x = -141.0
-        y = 188.5
+        text = "3FE0::/64"
+        x = 214.0
+        y = -132.5
         color = "#d3dae3"
     [[NOTE 4]]
         text = "2001:ABCD::/64"
@@ -122,9 +122,9 @@ version = 0.8.7
         y = -0.5
         color = "#d3dae3"
     [[NOTE 5]]
-        text = "3FE0::/64"
-        x = 214.0
-        y = -132.5
+        text = "3FE0:0:1::/64"
+        x = -68.0
+        y = -55.5
         color = "#d3dae3"
     [[NOTE 6]]
         text = "HA"
@@ -132,20 +132,20 @@ version = 0.8.7
         y = -109.5
         color = "#d3dae3"
     [[NOTE 7]]
-        text = "3FE0:0:1::/64"
-        x = -68.0
-        y = -55.5
+        text = "MN"
+        x = 181.0
+        y = -15.5
         color = "#d3dae3"
     [[NOTE 8]]
-        text = "Red visitada\nAS #50"
-        x = -21.0
-        y = 59.5
-        color = "#3c3c3c"
+        text = "2CAE:0:1::/64"
+        x = -141.0
+        y = 188.5
+        color = "#d3dae3"
     [[NOTE 9]]
-        text = "Red home\nAS #13"
-        x = -231.0
-        y = -197.5
-        color = "#3c3c3c"
+        text = "2CAE::/64"
+        x = 213.0
+        y = 192.5
+        color = "#d3dae3"
     [[NOTE 10]]
         text = "2"
         x = -4.49886940177
@@ -232,13 +232,13 @@ version = 0.8.7
         color = "#d3dae3"
     [[SHAPE 1]]
         type = rectangle
-        x = -235.585786438
-        y = -204.353859763
-        width = 538.0
-        height = 172.303607231
-    [[SHAPE 2]]
-        type = rectangle
         x = -236.0
         y = 54.0
         width = 541.0
         height = 138.0
+    [[SHAPE 2]]
+        type = rectangle
+        x = -235.585786438
+        y = -204.353859763
+        width = 538.0
+        height = 172.303607231

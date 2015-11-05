@@ -1,10 +1,10 @@
 autostart = False
-version = 0.8.6
+version = 0.8.7
 [127.0.0.1:7200]
     workingdir = /tmp
     udp = 10001
     [[7200]]
-        image = /home/alumno/Descargas/c7200-jk9s-mz.124-13b.image
+        image = /home/joseluis/GNS3/Images/c7200-jk9s-mz.124-13b.image
         sparsemem = True
         ghostios = True
     [[ROUTER AR1]]
@@ -63,8 +63,8 @@ version = 0.8.6
     [[ETHSW SW3]]
         1 = access 1 AR2 f2/0
         2 = access 1 MN e2
-        x = 214.5
-        y = 149.0
+        x = 218.5
+        y = 145.0
         z = 1.0
     [[ETHSW SW2]]
         1 = access 1 R2 f1/0
@@ -74,44 +74,47 @@ version = 0.8.6
         z = 1.0
     [[ETHSW SW4]]
         1 = access 1 AR1 f2/0
+        2 = access 1 MN e1
         x = 221.500000001
-        y = -90.0000000001
+        y = -88.0000000001
         z = 1.0
 [vbox 127.0.0.1:11525]
     workingdir = /tmp
     udp = 20900
     [[VBoxDevice]]
-        image = ARA-Host clonar
-        nics = 3
+        image = ARA-Host CN
+        nics = 2
     [[VBOX MN]]
-        image = ARA-Host
+        image = ARA-Host MN
+        nics = 3
+        e1 = SW4 2
         e2 = SW3 2
-        x = 489.500000001
-        y = 70.5000000002
+        x = 375.500000001
+        y = -9.49999999996
         z = 1.0
     [[VBOX CN]]
         e1 = SW1 3
-        x = 19.5000000001
-        y = -193.5
+        x = 57.5000000002
+        y = -194.5
         z = 1.0
 [GNS3-DATA]
     configs = configs
     m11 = 0.999999999998
     m22 = 0.999999999998
     [[NOTE 1]]
-        text = "3FE0::/64"
-        x = 214.0
-        y = -132.5
-        color = "#d3dae3"
-    [[NOTE 2]]
-        text = "MN"
-        x = 181.0
-        y = -15.5
-        color = "#d3dae3"
-    [[NOTE 3]]
         text = "2CAE::/64"
         x = 213.0
         y = 192.5
+        color = "#d3dae3"
+    [[NOTE 2]]
+        text = "2CAE:0:1::/64"
+        x = -141.0
+        y = 188.5
+        color = "#d3dae3"
+    [[NOTE 3]]
+        text = "3FE0:0:1::/64"
+        x = -68.0
+        y = -55.5
         color = "#d3dae3"
     [[NOTE 4]]
         text = "2001:ABCD::/64"
@@ -119,30 +122,30 @@ version = 0.8.6
         y = -0.5
         color = "#d3dae3"
     [[NOTE 5]]
-        text = "Red visitada\nAS #50"
-        x = -21.0
-        y = 59.5
-        color = "#3c3c3c"
+        text = "MN"
+        x = 181.0
+        y = -15.5
+        color = "#d3dae3"
     [[NOTE 6]]
         text = "HA"
         x = 146.0
         y = -109.5
         color = "#d3dae3"
     [[NOTE 7]]
-        text = "2CAE:0:1::/64"
-        x = -141.0
-        y = 188.5
-        color = "#d3dae3"
-    [[NOTE 8]]
         text = "Red home\nAS #13"
         x = -231.0
         y = -197.5
         color = "#3c3c3c"
-    [[NOTE 9]]
-        text = "3FE0:0:1::/64"
-        x = -68.0
-        y = -55.5
+    [[NOTE 8]]
+        text = "3FE0::/64"
+        x = 214.0
+        y = -132.5
         color = "#d3dae3"
+    [[NOTE 9]]
+        text = "Red visitada\nAS #50"
+        x = -21.0
+        y = 59.5
+        color = "#3c3c3c"
     [[NOTE 10]]
         text = "1"
         x = -4.21206502036
@@ -162,78 +165,66 @@ version = 0.8.6
         interface = SW2 2
         color = "#d3dae3"
     [[NOTE 13]]
-        text = "2"
-        x = 66.0716593404
-        y = -9.79483756831
-        interface = SW3 2
-        color = "#333333"
-    [[NOTE 14]]
         text = "1"
         x = -4.49930797644
         y = 15.7647099531
         interface = SW3 1
         color = "#d3dae3"
-    [[NOTE 15]]
-        text = "3"
-        x = 62.4620157655
-        y = -13.5474145376
-        interface = SW1 3
-        color = "#333333"
-    [[NOTE 16]]
+    [[NOTE 14]]
         text = "1"
         x = -4.49658294891
         y = 15.4771688503
         interface = SW1 1
         color = "#d3dae3"
-    [[NOTE 17]]
+    [[NOTE 15]]
         text = "2"
         x = 75.5
         y = 16.0
         interface = SW1 2
         color = "#d3dae3"
-    [[NOTE 18]]
+    [[NOTE 16]]
         text = "f1/0"
         x = 62.7317658499
         y = 48.7585892649
         interface = R2 f1/0
         color = "#d3dae3"
-    [[NOTE 19]]
+    [[NOTE 17]]
         text = "s2/0"
         x = 31.4094197056
         y = -17.968363168
         interface = R2 s2/0
         color = "#d3dae3"
-    [[NOTE 20]]
+    [[NOTE 18]]
         text = "s2/0"
         x = 34.5905802944
         y = 61.968363168
         interface = R1 s2/0
         color = "#d3dae3"
-    [[NOTE 21]]
+    [[NOTE 19]]
         text = "f1/0"
         x = 72.9965829489
         y = 22.5228311497
         interface = R1 f1/0
         color = "#d3dae3"
-    [[NOTE 22]]
+    [[NOTE 20]]
         text = "f2/0"
         x = 72.9993079764
         y = 22.2352900469
         interface = AR2 f2/0
         color = "#d3dae3"
-    [[NOTE 23]]
+    [[NOTE 21]]
         text = "f1/0"
         x = -6.994506794
         y = 22.6628923778
         interface = AR2 f1/0
         color = "#d3dae3"
-    [[NOTE 24]]
+    [[NOTE 22]]
         text = "f2/0"
         x = 72.7120650204
         y = 17.2091867268
         interface = AR1 f2/0
         color = "#333333"
-    [[NOTE 25]]
+    [[NOTE 23]]
         text = "f1/0"
         x = -7.0
         y = 22.0

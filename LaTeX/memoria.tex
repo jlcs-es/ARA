@@ -216,9 +216,8 @@ iface eth1 inet6 auto
 
 \section{Mobile Node: MIP6D}
 
-El MN es otra máquina virtual conectada a GNS3 con eth0 para el NAT y conectividad a internet, como el CN, y añadimos eth1 y eth2 conectadas respectivamente a las subredes 3FE0::/64 y 2CAE::/64. La configuración del demonio de movilidad se realiza con el fichero \textit{/usr/local/etc/mip6d.conf} que se muestra a continuación:
+El MN es otra máquina virtual conectada a GNS3 con eth0 para el NAT y conectividad a internet, como el CN, y añadimos eth1 y eth2 con \textit{inet6 auto} y conectadas respectivamente a las subredes 3FE0::/64 y 2CAE::/64. La configuración del demonio de movilidad se realiza con el fichero \textit{/usr/local/etc/mip6d.conf} que se muestra a continuación:
 
-%TODO: comprobar configuración (direcciones y resto de valores)
 \begin{lstlisting}
 NodeConfig MN;
 DebugLevel 1;
@@ -247,17 +246,183 @@ Indicamos también la dirección IPv6 del router AR1 por su interfaz FastEtherne
 
 Finalmente indicamos que no haya túnel IPSec entre el Mobile Node y Home Agent.
 
-%TODO: explicar que en /etc/default/mip6d se indica donde está el fichero del demonio y cómo se inicia.
+Para iniciar el demonio basta hacer \textit{sudo mip6d -c /usr/local/etc/mip6d.conf}.
 
 
 \section{Ping6 CN\texorpdfstring{$\rightarrow$}MN}
+Ejecutamos la orden en la máquina del CN:
+
+\begin{BVerbatim}
+ping6 -I eth1 3fe0::a00:27ff:feed:7e79
+\end{BVerbatim}
+
+En las trazas capturadas tenemos:
+
+%TODO: Analizar trazas antes del corte, indicar la interfaz donde se toman
+
+
+A continuación se corta el cable en la interfaz de GNS3 que une el MN con la subred de AR1:
+
+\begin{center} 
+	\includegraphics[scale=0.4]{images/topdesc.png}
+\end{center}
+
+%TODO: corroborar que es el icmp_seq=35
+Observamos en la salida de \textit{ping6} (ver anexo) que en los primeros mensajes tenemos un tiempo cercano a los 20ms de respuesta, y en el mensaje \textit{icmp\_seq=35} pasamos a tiempos de varios cientos, incluso mil milisegundos, y en el proceso hemos perdido el mensaje \textit{icmp\_seq=34}
+
+En el router AR1 podemos ver también el listado de bindings del Home Agent:
+
+\begin{center} 
+	\includegraphics[scale=0.6]{images/ar1binding.png}
+\end{center}
+
+Observamos la dirección del Home Address del MN (la dirección a la que hacemos ping6); la Care-of Address, que pertenece a la subred de AR2 a la que está conectado el MN por la interfaz eth2; la dirección del Home-Agent, la de AR1 por la interfaz FE2/0 que fijamos antes. También notamos cómo tiene en lifetime un tiempo de 60 segundos de vida para cada binding, los configurados en \textit{mip6d.conf}.
+
+Ahora veamos las trazas capturadas:
+%TODO: Analizar trazas del corte.
+
+Finalmente volvemos a unir el cable de eth1 con AR1. Se pierden varios mensajes, casi 50, y en el 154 nos contestan \textit{destino inalcanzable}. Finalmente, en el mensaje 155 volvemos a recibir respuesta y además con un ping cercano a los 20ms iniciales.
 
 
 \section{Traceroute6 CN\texorpdfstring{$\rightarrow$}MN}
 
+En la prueba de antes hacíamos ping, cortábamos el cable, y volvíamos a unirlo, mientras que el ping6 seguía funcionando. Ahora iniciamos con ping6, cortamos el cable, comprobamos que la movilidad funciona, y ejecutamos sin volver a unir el cable:
+
+\begin{BVerbatim}
+traceroute6 3fe0::a00:27ff:feed:7e79
+\end{BVerbatim}
+
+En la salida del comando observamos que
+
+%TODO: completar traceroute6
+
+
 
 \section{Análisis opcional Neighbour Discovery}
+%TODO
 
+
+\appendix
+\section{Ping6 salida por pantalla}
+\begin{Verbatim}
+PING 3fe0::a00:27ff:feed:7e79(3fe0::a00:27ff:feed:7e79) 
+from 3fe0:0:1:0:a00:27ff:fef1:1d6d eth1: 56 data bytes
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=1 ttl=63 time=44.3 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=2 ttl=63 time=17.1 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=3 ttl=63 time=20.8 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=4 ttl=63 time=14.8 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=5 ttl=63 time=18.6 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=6 ttl=63 time=22.0 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=7 ttl=63 time=15.4 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=8 ttl=63 time=19.4 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=9 ttl=63 time=22.8 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=10 ttl=63 time=16.5 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=14 ttl=63 time=17.3 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=15 ttl=63 time=20.5 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=16 ttl=63 time=23.6 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=17 ttl=63 time=15.3 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=18 ttl=63 time=18.0 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=19 ttl=63 time=20.9 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=20 ttl=63 time=22.1 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=21 ttl=63 time=14.0 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=22 ttl=63 time=16.9 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=23 ttl=63 time=18.9 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=24 ttl=63 time=21.5 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=25 ttl=63 time=23.6 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=26 ttl=63 time=16.0 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=27 ttl=63 time=19.3 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=28 ttl=63 time=22.9 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=29 ttl=63 time=15.9 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=30 ttl=63 time=18.0 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=31 ttl=63 time=21.3 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=32 ttl=63 time=13.9 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=33 ttl=63 time=17.2 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=35 ttl=63 time=410 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=36 ttl=63 time=1067 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=37 ttl=63 time=198 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=38 ttl=63 time=202 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=39 ttl=63 time=247 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=40 ttl=63 time=583 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=41 ttl=63 time=1060 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=42 ttl=63 time=1066 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=43 ttl=63 time=1071 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=44 ttl=63 time=1064 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=45 ttl=63 time=807 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=46 ttl=63 time=1063 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=47 ttl=63 time=197 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=48 ttl=63 time=244 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=49 ttl=63 time=1062 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=50 ttl=63 time=845 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=51 ttl=63 time=86.1 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=52 ttl=63 time=1075 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=53 ttl=63 time=1073 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=54 ttl=63 time=1067 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=55 ttl=63 time=1062 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=56 ttl=63 time=172 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=57 ttl=63 time=177 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=58 ttl=63 time=222 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=59 ttl=63 time=1082 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=60 ttl=63 time=817 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=61 ttl=63 time=1074 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=62 ttl=63 time=1071 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=63 ttl=63 time=1066 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=64 ttl=63 time=1071 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=65 ttl=63 time=975 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=66 ttl=63 time=1072 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=67 ttl=63 time=155 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=68 ttl=63 time=200 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=69 ttl=63 time=1070 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=70 ttl=63 time=194 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=71 ttl=63 time=1074 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=72 ttl=63 time=790 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=73 ttl=63 time=191 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=74 ttl=63 time=1059 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=75 ttl=63 time=984 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=76 ttl=63 time=1080 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=77 ttl=63 time=121 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=78 ttl=63 time=175 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=79 ttl=63 time=1074 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=80 ttl=63 time=769 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=81 ttl=63 time=1075 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=82 ttl=63 time=1074 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=83 ttl=63 time=1070 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=84 ttl=63 time=1067 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=85 ttl=63 time=1072 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=86 ttl=63 time=311 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=87 ttl=63 time=94.3 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=88 ttl=63 time=137 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=89 ttl=63 time=111 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=90 ttl=63 time=97.1 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=91 ttl=63 time=92.0 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=92 ttl=63 time=187 ms
+From 3fe0:0:1:0:c800:44ff:fe8d:1c icmp_seq=154 Destination unreachable: Address unreachable
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=155 ttl=63 time=21.6 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=156 ttl=63 time=14.4 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=157 ttl=63 time=18.3 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=158 ttl=63 time=21.4 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=159 ttl=63 time=14.5 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=160 ttl=63 time=17.5 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=161 ttl=63 time=21.1 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=162 ttl=63 time=14.9 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=163 ttl=63 time=17.3 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=164 ttl=63 time=20.2 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=165 ttl=63 time=13.2 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=166 ttl=63 time=16.4 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=167 ttl=63 time=19.9 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=168 ttl=63 time=22.2 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=169 ttl=63 time=15.2 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=170 ttl=63 time=18.1 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=171 ttl=63 time=11.2 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=172 ttl=63 time=14.8 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=173 ttl=63 time=16.6 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=174 ttl=63 time=18.0 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=175 ttl=63 time=21.2 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=176 ttl=63 time=14.8 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=177 ttl=63 time=17.2 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=178 ttl=63 time=20.1 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=179 ttl=63 time=13.3 ms
+64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=180 ttl=63 time=15.8 ms
+\end{Verbatim}
 
 
 

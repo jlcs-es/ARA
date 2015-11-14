@@ -179,7 +179,85 @@ Donde 3FE0:0:1:0:C802:1AFF:FE5F:1C es la IP autoconfigurada de R1 en la subred 3
 Considerando que para llegar de AR1 a AR2 con ping y traceroute todos los routers deben conocer el camino en un sentido u otro, con esta única prueba podemos concluir que la configuración de la topología básica con OSPF y BGP es correcta.
 
 
-\section{NEXT}
+\section{Configuración Home Agent}
+Según mi topología, el router AR1 por la interfaz FastEthernet2/0 debería actuar como Home Agent para la subred 3FE0::/64. Para activar el proceso del router que actúe como Home Agent basta incluir la siguiente línea en la configuración de la interfaz:
+\begin{BVerbatim}
+ ipv6 mobile home-agent
+\end{BVerbatim}
+
+Además, incluimos las siguientes configuraciones para el neighbor discovery del router por dicha interfaz, para mejorar la movilidad, al incrementar los anuncios en la subred del router, de modo que el Mobile Node detecta antes los cambios:
+
+\begin{BVerbatim}
+ ipv6 nd prefix 3FE0::/64
+ ipv6 nd ra-interval 3
+\end{BVerbatim}
+
+La primera línea es obvia, indica el prefijo a anunciar, el de la subred. La segunda línea indica el intervalo del Router Advertisement en segundos, en este caso con 3 segundos parece razonable. Para indicarlo en milisegundos habría que añadir 
+\begin{BVerbatim}
+msec
+\end{BVerbatim}
+\ en la línea.
+
+Como el Mobile Node en la prueba pasará a la subred de AR2, incrementamos también el intervalo del Router Advertisement en su interfaz FastEthernet2/0 (la de la red visitada).
+
+\section{Correspondent Node}
+El CN no es más que una máquina cualquiera conectada en la red 3FE0:0:1::/64, entre R1 y AR1. La IP que en la ejecución de las pruebas se ha autoconfigurado (por EUI64) es 
+\begin{BVerbatim}
+3fe0:0:1:0:a00:27ff:fef1:1d6d
+\end{BVerbatim}
+.
+
+No necesita configuración especial para la red. Como máquina virtual de Virtual Box en GNS3, se ha configurado con la interfaz eth0 para el NAT con salida a internet, y eth1 conectado al switch de la topología. En \textit{/etc/network/interfaces} se definen ambas interfaces, y a eth1 se le añade la línea 
+\begin{BVerbatim}
+iface eth1 inet6 auto
+\end{BVerbatim}
+\ de modo que se configura automáticamente una dirección IPv6.
+
+
+\section{Mobile Node: MIP6D}
+
+El MN es otra máquina virtual conectada a GNS3 con eth0 para el NAT y conectividad a internet, como el CN, y añadimos eth1 y eth2 conectadas respectivamente a las subredes 3FE0::/64 y 2CAE::/64. La configuración del demonio de movilidad se realiza con el fichero \textit{/usr/local/etc/mip6d.conf} que se muestra a continuación:
+
+%TODO: comprobar configuración (direcciones y resto de valores)
+\begin{lstlisting}
+NodeConfig MN;
+DebugLevel 1;
+OptimisticHandoff enabled;
+DoRouteOptimizationMN disabled;
+MnMaxHaBindingLife 60;
+Interface "eth1" {
+	MnIfPreference 1;
+}
+Interface "eth2" {
+	MnIfPreference 2;
+}
+MnHomeLink "eth1" {
+	HomeAgentAddress 3FE0::1;
+	HomeAddress 3fe0::a00:27ff:feed:7e79/64;
+}
+UseMnHaIPsec disabled;
+KeyMngMobCapability disabled;
+\end{lstlisting}
+
+La primera línea indica al demonio que debe actuar como Mobile Node, mostrando mensajes de debug (0 para no mostrar ninguno), sin optimización de ruta y un tiempo de vida de un binding con el Home Agent de 60 segundos.
+
+A continuación se indican las interfaces que formarán parte de mobile ipv6, en este caso eth1 y eth2, con preferencias de a menor valor se elige antes, de modo que de estar disponibles ambas interfaces, se elije antes eth1 (la conectada directamente a la red del HA).
+
+Indicamos también la dirección IPv6 del router AR1 por su interfaz FastEthernet2/0 (IP fija) y la dirección Home Address del MN.
+
+Finalmente indicamos que no haya túnel IPSec entre el Mobile Node y Home Agent.
+
+%TODO: explicar que en /etc/default/mip6d se indica donde está el fichero del demonio y cómo se inicia.
+
+
+\section{Ping6 CN\texorpdfstring{$\rightarrow$}MN}
+
+
+\section{Traceroute6 CN\texorpdfstring{$\rightarrow$}MN}
+
+
+\section{Análisis opcional Neighbour Discovery}
+
 
 
 

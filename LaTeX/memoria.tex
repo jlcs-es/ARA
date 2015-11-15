@@ -258,16 +258,14 @@ ping6 -I eth1 3fe0::a00:27ff:feed:7e79
 
 En las trazas capturadas tenemos:
 
-%TODO: Analizar trazas antes del corte, indicar la interfaz donde se toman
+En el fichero de captura de la interfaz FE2/0 de AR1 tenemos desde la traza número 75 con el ping request \textit{icmp\_seq=1} hasta la traza 161 con el ping reply del \textit{icmp\_seq=33}. En la traza 164 vemos el ping request \textit{icmp\_seq=34} pero sin respuesta en el resto de la captura.
 
-
-A continuación se corta el cable en la interfaz de GNS3 que une el MN con la subred de AR1:
+Esto último ocurre cuando se corta el cable en la interfaz de GNS3 que une el MN con la subred de AR1:
 
 \begin{center} 
 	\includegraphics[scale=0.4]{images/topdesc.png}
 \end{center}
 
-%TODO: corroborar que es el icmp_seq=35
 Observamos en la salida de \textit{ping6} (ver anexo) que en los primeros mensajes tenemos un tiempo cercano a los 20ms de respuesta, y en el mensaje \textit{icmp\_seq=35} pasamos a tiempos de varios cientos, incluso mil milisegundos, y en el proceso hemos perdido el mensaje \textit{icmp\_seq=34}
 
 En el router AR1 podemos ver también el listado de bindings del Home Agent:
@@ -278,10 +276,51 @@ En el router AR1 podemos ver también el listado de bindings del Home Agent:
 
 Observamos la dirección del Home Address del MN (la dirección a la que hacemos ping6); la Care-of Address, que pertenece a la subred de AR2 a la que está conectado el MN por la interfaz eth2; la dirección del Home-Agent, la de AR1 por la interfaz FE2/0 que fijamos antes. También notamos cómo tiene en lifetime un tiempo de 60 segundos de vida para cada binding, los configurados en \textit{mip6d.conf}.
 
-Ahora veamos las trazas capturadas:
-%TODO: Analizar trazas del corte.
+Ahora veamos las trazas capturadas en el corte:
+
+En la captura realizada en AR2 por la interfaz FE2/0 (a la que se conecta el MN) filtramos todos los mensajes \textit{ICMPv6} y vemos que el primer ping que se registra es el \textit{icmp\_seq=35} en la traza 94, que le llega al CN con un ping de 410ms. Ahora filtramos por \textit{mipv6} y vemos que en las trazas 90 y 93 están los mensajes de binding update y binding ack correspondientes al corte, justo antes del primer mensaje de ping. Además en las trazas 292 y 295 tenemos otro par de mensajes de binding que coinciden por la marca de tiempo a la caducidad de un minuto de cada binding.
+
+
+
+\begin{center} 
+	\includegraphics[scale=0.7]{images/bindUpdate.png}
+\end{center}
+
+\begin{center} 
+	\includegraphics[scale=0.7]{images/bindDestOpt.png}
+\end{center}
+
+La imagen anterior es el primer binding update que manda el MN y vemos que el origen real del paquete IPv6 es de la subred 2CAE::/64, de AR2, la red visitada, pero tiene una destination option de tipo \textit{home address} que indica al home agent que su dirección Home Adress es la 3fe0::a00:27ff:feed:7e79. Así en la lista de trazas la fuente del mensaje parece que es de la subred 3FE0::/64 pero en verdad es de 2CAE::/64.
+
+En la imagen del Destination Option vemos que el campo Next Header indica MobileIPv6, y en dicha cabecera, como ya no hay más, indica IPv6 no next header.
+
+En cuanto al mensaje de Binding Update en sí, vemos que en los flags tiene activados el de ACK requested, obligatorio en cualquier Binding Update, el flag de Home Registration, pues el mensaje va destinado al Home Agent para que le reenvíe los mensajes al CoA. Notamos también que el flag K está a cero porque hemos desactivado la seguridad con IPsec, por lo que no tiene información de IKE que mantener entre cambios de IP. Tras los flags vemos que el tiempo de vida del binding es el configurado de 60 segundos.
+
+La dirección Care-of Address la indica en la opción \textit{Alternate Care-of Address} y vemos que es la misma que la IPsrc del paquete IPv6, de la subred 2CAE::/64.
+
+\begin{center} 
+	\includegraphics[scale=0.7]{images/bindACK.png}
+\end{center}
+
+\begin{center} 
+	\includegraphics[scale=0.7]{images/bindRoutHead.png}
+\end{center}
+
+En las imágenes de la traza 93 vemos que se trata de un Binding ACK exitoso, sin mucha más información interesante por parte del binding ack, pero sí por parte de las cabeceras IPv6 previas, pues le precede una Routing Header de tipo 2, con información de la Home Address, de ahí que en el listado de trazas aparezca como dirección de destino la Home Address, mientras que el paquete IPv6 está realmente dirigido a la Care-of Address en 2CAE::/64.
+
+
 
 Finalmente volvemos a unir el cable de eth1 con AR1. Se pierden varios mensajes, casi 50, y en el 154 nos contestan \textit{destino inalcanzable}. Finalmente, en el mensaje 155 volvemos a recibir respuesta y además con un ping cercano a los 20ms iniciales.
+
+\begin{center} 
+	\includegraphics[scale=0.6]{images/bindEND.png}
+\end{center}
+
+
+En las trazas tomadas en AR1 vemos que existen únicamente dos mensajes MIPv6, y justo cuando vuelven a aparecer mensajes de ping con números de secuencia a partir del 149.
+
+En la cabecera IPv6 vemos de nuevo el Destination Option con la Home Address, y en el binding update la información es la misa que en el analizado antes, exceptuando el Lifetime del binding, que es 0, de modo que en el Home Agent se elimina y los paquetes destinados al MN se le envían directamente de nuevo.
+
 
 
 \section{Traceroute6 CN\texorpdfstring{$\rightarrow$}MN}
@@ -299,7 +338,34 @@ En la salida del comando observamos que
 
 
 \section{Análisis opcional Neighbour Discovery}
-%TODO
+A continuación analizo dos mensajes de neighbour solicitation tomados en la interfaz FE2/0 de AR1:
+
+Neighbor Solicitation:
+
+\begin{center} 
+	\includegraphics[scale=0.8]{images/neighSol.png}
+\end{center}
+
+En el paquete IPv6 vemos que el next header es el ICMPv6 de Neighbor Solicitation, el hop limit está a 255 para comprobar que no sale del tramo de red en el que se envía, se conoce la IP propia (source) y se pregunta por una dirección multicast, que por terminar en 1:ffed:7e79 es la Solicited Node Multicast Address del MN. El origen del paquete corresponde a la dirección Link-Local de AR1, que se puede comprobar por su MAC en el último mensaje de Binding ACK visto (origen 3FE0::1).
+
+En el mensaje ICMP en sí vemos que tiene el campo de Target Address con la dirección del MN, y como campo option adicional, el Source Link-Layer address, la dirección MAC origen de AR1 que solicita el Neighbor Advertisement.
+
+
+\hfill
+
+\hfill
+
+Neighbor Advertisement:
+
+\begin{center} 
+	\includegraphics[scale=0.8]{images/neighAdv.png}
+\end{center}
+
+Aquí tenemos la contestación al NS anterior. En la cabecera IPv6 vemos que el next-header es un ICMPv6, el hop limit es 255 igual que antes, y las direcciones de fuente y destino son ahora unicast, ya no se usa la multicast de Solicited Node. En concreto la IP fuente es global y la destino es link-local.
+
+En el mensaje ICMPv6 tenemos en los flags que no es un router (es el MN en concreto), que el Advertisement es solicitado (por eso no lo envía a All-Nodes), y que se deben reescribir las entradas de las cachés con la nueva información.
+
+Añade el Target Address con la dirección pedida del MN, y una Option con el Target Link-Layer Address, la MAC de la interfaz eth1 del MN. Esta información al final del proceso es la equivalente a la que conseguiría con ARP e IPv4.
 
 
 \appendix
@@ -429,6 +495,8 @@ From 3fe0:0:1:0:c800:44ff:fe8d:1c icmp_seq=154 Destination unreachable: Address 
 \begin{thebibliography}{99}
 	\bibitem{apuntes}
 	Apuntes
+	
+	%TODO
 \end{thebibliography}
 
 

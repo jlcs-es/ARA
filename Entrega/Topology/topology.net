@@ -1,0 +1,160 @@
+autostart = False
+version = 0.8.7
+[127.0.0.1:7200]
+    workingdir = /tmp
+    udp = 10001
+    [[7200]]
+        image = /home/joseluis/GNS3/Images/c7200-jk9s-mz.124-13b.image
+        sparsemem = True
+        ghostios = True
+    [[ROUTER AR1]]
+        console = 2103
+        aux = 2503
+        cnfg = configs/AR1.cfg
+        slot1 = PA-FE-TX
+        f1/0 = SW1 2
+        slot2 = PA-FE-TX
+        f2/0 = SW4 1
+        x = 89.2928932188
+        y = -95.7071067812
+        z = 1.0
+    [[ROUTER AR2]]
+        console = 2105
+        aux = 2505
+        cnfg = configs/AR2.cfg
+        slot1 = PA-FE-TX
+        f1/0 = SW2 2
+        slot2 = PA-FE-TX
+        f2/0 = SW3 1
+        x = 47.0
+        y = 142.0
+        z = 1.0
+    [[ROUTER R1]]
+        console = 2101
+        aux = 2501
+        cnfg = configs/R1.cfg
+        slot1 = PA-FE-TX
+        f1/0 = SW1 1
+        slot2 = PA-8T
+        s2/0 = R2 s2/0
+        x = -202.0
+        y = -97.0
+        z = 1.0
+    [[ROUTER R2]]
+        console = 2102
+        aux = 2502
+        cnfg = configs/R2.cfg
+        slot1 = PA-FE-TX
+        f1/0 = SW2 1
+        slot2 = PA-8T
+        s2/0 = R1 s2/0
+        x = -214.0
+        y = 73.0
+        z = 1.0
+        hx = -4.2578125
+        hy = -20.0
+    [[ETHSW SW1]]
+        1 = access 1 R1 f1/0
+        2 = access 1 AR1 f1/0
+        3 = access 1 CN e1
+        x = -51.5
+        y = -89.0
+        z = 1.0
+    [[ETHSW SW3]]
+        1 = access 1 AR2 f2/0
+        2 = access 1 MN e2
+        x = 218.5
+        y = 145.0
+        z = 1.0
+    [[ETHSW SW2]]
+        1 = access 1 R2 f1/0
+        2 = access 1 AR2 f1/0
+        x = -107.5
+        y = 152.0
+        z = 1.0
+    [[ETHSW SW4]]
+        1 = access 1 AR1 f2/0
+        2 = access 1 MN e1
+        x = 221.500000001
+        y = -88.0000000001
+        z = 1.0
+[vbox 127.0.0.1:11525]
+    workingdir = /tmp
+    udp = 20900
+    [[VBoxDevice]]
+        image = ARA-Host CN
+        nics = 2
+    [[VBOX MN]]
+        image = ARA-Host MN
+        nics = 3
+        e1 = SW4 2
+        e2 = SW3 2
+        x = 375.500000001
+        y = -9.49999999996
+        z = 1.0
+    [[VBOX CN]]
+        e1 = SW1 3
+        x = 57.5000000002
+        y = -194.5
+        z = 1.0
+[GNS3-DATA]
+    configs = configs
+    m11 = 0.999999999998
+    m22 = 0.999999999998
+    [[NOTE 1]]
+        text = "MN"
+        x = 181.0
+        y = -15.5
+        color = "#d3dae3"
+    [[NOTE 2]]
+        text = "2CAE::/64"
+        x = 213.0
+        y = 192.5
+        color = "#d3dae3"
+    [[NOTE 3]]
+        text = "2CAE:0:1::/64"
+        x = -141.0
+        y = 188.5
+        color = "#d3dae3"
+    [[NOTE 4]]
+        text = "2001:ABCD::/64"
+        x = -310.0
+        y = -0.5
+        color = "#d3dae3"
+    [[NOTE 5]]
+        text = "3FE0::/64"
+        x = 214.0
+        y = -132.5
+        color = "#d3dae3"
+    [[NOTE 6]]
+        text = "HA"
+        x = 146.0
+        y = -109.5
+        color = "#d3dae3"
+    [[NOTE 7]]
+        text = "3FE0:0:1::/64"
+        x = -68.0
+        y = -55.5
+        color = "#d3dae3"
+    [[NOTE 8]]
+        text = "Red visitada\nAS #50"
+        x = -21.0
+        y = 59.5
+        color = "#3c3c3c"
+    [[NOTE 9]]
+        text = "Red home\nAS #13"
+        x = -231.0
+        y = -197.5
+        color = "#3c3c3c"
+    [[SHAPE 1]]
+        type = rectangle
+        x = -235.585786438
+        y = -206.353859763
+        width = 538.0
+        height = 172.303607231
+    [[SHAPE 2]]
+        type = rectangle
+        x = -236.0
+        y = 54.0
+        width = 541.0
+        height = 138.0

@@ -37,7 +37,7 @@
 	showtabs=false,                  % show tabs within strings adding particular underscores
 	stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
 	stringstyle=\color{mymauve},     % string literal style
-	tabsize=4,                       
+	tabsize=4,
 	title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
 }
 
@@ -57,7 +57,7 @@
 \section{Topología inicial}
 Partimos en este proyecto creando una nueva topología en GNS3 equivalente a la del enunciado y que se puede ver en la imagen inferior. Para los routers se utiliza la ios del modelo C7200 de CISCO, con soporte para IPv6. Para los hosts, una imagen linux sin interfaz gráfica y con gestor de paquetes para poder instalar el soporte de mobile IPv6.\par
 
-\begin{center} 
+\begin{center}
 	\includegraphics[scale=0.5]{images/topologyInic.png}
 \end{center}
 
@@ -70,7 +70,7 @@ Para activar IPv6 es necesario indicarlo antes de la configuración de las inter
 
 Con esto tendríamos activado IPv6 en cada router, pero al intentar hacer \textit{ping} a una interfaz de otra red, vemos que no se recibe respuesta. Esto es porque no hay información en las tablas de rutas más que de las redes conectadas directamente a las interfaces de cada router.
 
-Para cada Sistema Autónomo vamos a usar OSPF con soporte de IPv6. El diseño será de una única área 0 para todo el AS, lo que incluye las subredes en AS\#13 3FE0:0:1::/64 y 3Fe0::/64, y en AS\#50 las subredes 2CAE:0:1::/64 y 2CAE::64. Para ello, debemos activar OSPF en las dos interfaces de los routers AR1 y AR2, y en la interfaz FastEthernet1/0 de los routers R1 y R2 que se pueden ver en la figura de la topología más arriba.                                                                         
+Para cada Sistema Autónomo vamos a usar OSPF con soporte de IPv6. El diseño será de una única área 0 para todo el AS, lo que incluye las subredes en AS\#13 3FE0:0:1::/64 y 3Fe0::/64, y en AS\#50 las subredes 2CAE:0:1::/64 y 2CAE::64. Para ello, debemos activar OSPF en las dos interfaces de los routers AR1 y AR2, y en la interfaz FastEthernet1/0 de los routers R1 y R2 que se pueden ver en la figura de la topología más arriba.
 
 Las órdenes para activar OSPF en cada router son:
 
@@ -146,7 +146,7 @@ L   FE80::/10 [0/0]
 via ::, Null0
 L   FF00::/8 [0/0]
 via ::, Null0
-\end{lstlisting}                                                                                
+\end{lstlisting}
 
 En las líneas 16 a 19 se puede observar rutas a las redes del AS 13 conocidas por OSPF de rutas externas.
 \\
@@ -173,7 +173,7 @@ Tracing the route to 2CAE::C801:1AFF:FE5F:38
 3 2CAE::C801:1AFF:FE5F:38 60 msec 60 msec 60 msec
 Router>
 \end{lstlisting}
-                                                       
+
 Donde 3FE0:0:1:0:C802:1AFF:FE5F:1C es la IP autoconfigurada de R1 en la subred 3FE0:0:1::/64, 2001:ABCD::2 es la IP manual de R2 en la subred 2001:ABCD::/64 y finalmente 2CAE::C801:1AFF:FE5F:38 la IP de AR2.
 
 Considerando que para llegar de AR1 a AR2 con ping y traceroute todos los routers deben conocer el camino en un sentido u otro, con esta única prueba podemos concluir que la configuración de la topología básica con OSPF y BGP es correcta.
@@ -192,7 +192,7 @@ Además, incluimos las siguientes configuraciones para el neighbor discovery del
  ipv6 nd ra-interval 3
 \end{BVerbatim}
 
-La primera línea es obvia, indica el prefijo a anunciar, el de la subred. La segunda línea indica el intervalo del Router Advertisement en segundos, en este caso con 3 segundos parece razonable. Para indicarlo en milisegundos habría que añadir 
+La primera línea es obvia, indica el prefijo a anunciar, el de la subred. La segunda línea indica el intervalo del Router Advertisement en segundos, en este caso con 3 segundos parece razonable. Para indicarlo en milisegundos habría que añadir
 \begin{BVerbatim}
 msec
 \end{BVerbatim}
@@ -201,13 +201,13 @@ msec
 Como el Mobile Node en la prueba pasará a la subred de AR2, incrementamos también el intervalo del Router Advertisement en su interfaz FastEthernet2/0 (la de la red visitada).
 
 \section{Correspondent Node}
-El CN no es más que una máquina cualquiera conectada en la red 3FE0:0:1::/64, entre R1 y AR1. La IP que en la ejecución de las pruebas se ha autoconfigurado (por EUI64) es 
+El CN no es más que una máquina cualquiera conectada en la red 3FE0:0:1::/64, entre R1 y AR1. La IP que en la ejecución de las pruebas se ha autoconfigurado (por EUI64) es
 \begin{BVerbatim}
 3fe0:0:1:0:a00:27ff:fef1:1d6d
 \end{BVerbatim}
 .
 
-No necesita configuración especial para la red. Como máquina virtual de Virtual Box en GNS3, se ha configurado con la interfaz eth0 para el NAT con salida a internet, y eth1 conectado al switch de la topología. En \textit{/etc/network/interfaces} se definen ambas interfaces, y a eth1 se le añade la línea 
+No necesita configuración especial para la red. Como máquina virtual de Virtual Box en GNS3, se ha configurado con la interfaz eth0 para el NAT con salida a internet, y eth1 conectado al switch de la topología. En \textit{/etc/network/interfaces} se definen ambas interfaces, y a eth1 se le añade la línea
 \begin{BVerbatim}
 iface eth1 inet6 auto
 \end{BVerbatim}
@@ -262,7 +262,7 @@ En el fichero de captura de la interfaz FE2/0 de AR1 tenemos desde la traza núm
 
 Esto último ocurre cuando se corta el cable en la interfaz de GNS3 que une el MN con la subred de AR1:
 
-\begin{center} 
+\begin{center}
 	\includegraphics[scale=0.4]{images/topdesc.png}
 \end{center}
 
@@ -270,7 +270,7 @@ Observamos en la salida de \textit{ping6} (ver anexo) que en los primeros mensaj
 
 En el router AR1 podemos ver también el listado de bindings del Home Agent:
 
-\begin{center} 
+\begin{center}
 	\includegraphics[scale=0.6]{images/ar1binding.png}
 \end{center}
 
@@ -282,12 +282,12 @@ En la captura realizada en AR2 por la interfaz FE2/0 (a la que se conecta el MN)
 
 
 
-\begin{center} 
-	\includegraphics[scale=0.7]{images/bindUpdate.png}
+\begin{center}
+	\includegraphics[scale=0.7]{images/bindUpdate.PNG}
 \end{center}
 
-\begin{center} 
-	\includegraphics[scale=0.7]{images/bindDestOpt.png}
+\begin{center}
+	\includegraphics[scale=0.7]{images/bindDestOpt.PNG}
 \end{center}
 
 La imagen anterior es el primer binding update que manda el MN y vemos que el origen real del paquete IPv6 es de la subred 2CAE::/64, de AR2, la red visitada, pero tiene una destination option de tipo \textit{home address} que indica al home agent que su dirección Home Adress es la 3fe0::a00:27ff:feed:7e79. Así en la lista de trazas la fuente del mensaje parece que es de la subred 3FE0::/64 pero en verdad es de 2CAE::/64.
@@ -298,12 +298,12 @@ En cuanto al mensaje de Binding Update en sí, vemos que en los flags tiene acti
 
 La dirección Care-of Address la indica en la opción \textit{Alternate Care-of Address} y vemos que es la misma que la IPsrc del paquete IPv6, de la subred 2CAE::/64.
 
-\begin{center} 
-	\includegraphics[scale=0.7]{images/bindACK.png}
+\begin{center}
+	\includegraphics[scale=0.7]{images/bindACK.PNG}
 \end{center}
 
-\begin{center} 
-	\includegraphics[scale=0.7]{images/bindRoutHead.png}
+\begin{center}
+	\includegraphics[scale=0.7]{images/bindRoutHead.PNG}
 \end{center}
 
 En las imágenes de la traza 93 vemos que se trata de un Binding ACK exitoso, sin mucha más información interesante por parte del binding ack, pero sí por parte de las cabeceras IPv6 previas, pues le precede una Routing Header de tipo 2, con información de la Home Address, de ahí que en el listado de trazas aparezca como dirección de destino la Home Address, mientras que el paquete IPv6 está realmente dirigido a la Care-of Address en 2CAE::/64.
@@ -312,8 +312,8 @@ En las imágenes de la traza 93 vemos que se trata de un Binding ACK exitoso, si
 
 Finalmente volvemos a unir el cable de eth1 con AR1. Se pierden varios mensajes, casi 50, y en el 154 nos contestan \textit{destino inalcanzable}. Finalmente, en el mensaje 155 volvemos a recibir respuesta y además con un ping cercano a los 20ms iniciales.
 
-\begin{center} 
-	\includegraphics[scale=0.6]{images/bindEND.png}
+\begin{center}
+	\includegraphics[scale=0.6]{images/bindEND.PNG}
 \end{center}
 
 
@@ -331,9 +331,22 @@ En la prueba de antes hacíamos ping, cortábamos el cable, y volvíamos a unirl
 traceroute6 3fe0::a00:27ff:feed:7e79
 \end{BVerbatim}
 
-En la salida del comando observamos que
+En la salida del comando observamos que llega un primer salto a la interfaz de AR1 en la subred del CN, y en la segunda entrada AR1 contesta por la misma interfaz que no hay host, es decir, que no está la máquina MN. Ante estos resultados inesperados, he repetido la prueba numerosas veces comprobando que las MACs de las máquinas virtuales no son las mismas, pues se reinicializaron en la clonación, que no tienen la misma IPv6, y además, ejecutando alternamente las órdenes de ping6 y traceroute6 desde el CN al MN con el cable cortado, la respuesta de traceroute es siempre la misma, y ping6 funciona sin problemas con la movilidad. En los adjuntos estás las trazas con las capturas de dichas pruebas que muestran cómo AR1 devuelve un mensaje de Time Exceeded: hop limit exceeded in transit con el primer mensaje (lo esperado de traceroute para detectar el primer salto), y un Destination Unreacheable: Address unreacheable, con la contestación al segundo mensaje de hop limit = 2.
 
-%TODO: completar traceroute6
+En las trazas tomadas en AR2 se observa que al MN le llegan varios bloques de mensajes ping6, que corresponden con los realizados pues al alternar entre ping6 y traceroute6 sólo dejábamos 4 mensajes, y en las trazas van del seq=1 al seq=4 en varios bloques seguidos. Sin embargo, esos mismos bloques de ping en AR1 están intercalados por los mensajes UDP y de error anteriores.
+
+Los mensajes UDP son los request de traceroute, pues la técnica por defecto de la implementación es enviar a puertos que tienen poca probabilidad de estar en escucha por una aplicación, un mensaje con destino el pedido y hop limit cada vez mayor. Para descartar que sea el uso de UDP el responsable de este error, usamos el comando traceroute -6 -I, y traceroute -6 -T que en vez de usar UDP, usan ICMP y TCP respectivamente, pero los resultados son los mismos.
+
+Podemos concluir que existe algún error con el router Cisco usado, donde el ping funciona perfectamente pero el traceroute que llega a un MN con binding falla, pues cuando está conectado por cable el MN a AR1, todo funciona bien.
+
+En el caso de que todo hubiera funcionado, el resultado esperado es que el traceroute mostrara al MN a 2 saltos, CN a AR1, AR1 a MN, debido a que el HA y el MN hacen encapsulación IPv6 a los mensajes, que se puede verificar en los PING capturados en AR2.
+
+Una captura del resultado que se obtiene con el comando en todas las pruebas:
+
+
+\begin{center}
+	\includegraphics[scale=0.6]{images/trac6.png}
+\end{center}
 
 
 
@@ -342,8 +355,8 @@ A continuación analizo dos mensajes de neighbour solicitation tomados en la int
 
 Neighbor Solicitation:
 
-\begin{center} 
-	\includegraphics[scale=0.8]{images/neighSol.png}
+\begin{center}
+	\includegraphics[scale=0.8]{images/neighSol.PNG}
 \end{center}
 
 En el paquete IPv6 vemos que el next header es el ICMPv6 de Neighbor Solicitation, el hop limit está a 255 para comprobar que no sale del tramo de red en el que se envía, se conoce la IP propia (source) y se pregunta por una dirección multicast, que por terminar en 1:ffed:7e79 es la Solicited Node Multicast Address del MN. El origen del paquete corresponde a la dirección Link-Local de AR1, que se puede comprobar por su MAC en el último mensaje de Binding ACK visto (origen 3FE0::1).
@@ -357,8 +370,8 @@ En el mensaje ICMP en sí vemos que tiene el campo de Target Address con la dire
 
 Neighbor Advertisement:
 
-\begin{center} 
-	\includegraphics[scale=0.8]{images/neighAdv.png}
+\begin{center}
+	\includegraphics[scale=0.8]{images/neighAdv.PNG}
 \end{center}
 
 Aquí tenemos la contestación al NS anterior. En la cabecera IPv6 vemos que el next-header es un ICMPv6, el hop limit es 255 igual que antes, y las direcciones de fuente y destino son ahora unicast, ya no se usa la multicast de Solicited Node. En concreto la IP fuente es global y la destino es link-local.
@@ -371,7 +384,7 @@ Añade el Target Address con la dirección pedida del MN, y una Option con el Ta
 \appendix
 \section{Ping6 salida por pantalla}
 \begin{Verbatim}
-PING 3fe0::a00:27ff:feed:7e79(3fe0::a00:27ff:feed:7e79) 
+PING 3fe0::a00:27ff:feed:7e79(3fe0::a00:27ff:feed:7e79)
 from 3fe0:0:1:0:a00:27ff:fef1:1d6d eth1: 56 data bytes
 64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=1 ttl=63 time=44.3 ms
 64 bytes from 3fe0::a00:27ff:feed:7e79: icmp_seq=2 ttl=63 time=17.1 ms
@@ -495,7 +508,7 @@ From 3fe0:0:1:0:c800:44ff:fe8d:1c icmp_seq=154 Destination unreachable: Address 
 \begin{thebibliography}{99}
 	\bibitem{apuntes}
 	Apuntes
-	
+
 	%TODO
 \end{thebibliography}
 

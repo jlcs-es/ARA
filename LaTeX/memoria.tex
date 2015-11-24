@@ -49,18 +49,18 @@
 \maketitle
 
 \begin{abstract}
-	En este informe se redacta el desarrollo usando la herramienta GNS3 para el despliegue del escenario de red IPv6 con movilidad. Se incluyen de manera opcional la configuración de BGP entre R1 y R2, y el análisis de trazas de Neighbout Discovery.
+	En este informe se redacta el desarrollo usando la herramienta GNS3 para el despliegue del escenario de red IPv6 con movilidad. Se incluyen de manera opcional la configuración de BGP entre R1 y R2, y el análisis de trazas de Neighbour Discovery.
 \end{abstract}
 
 \tableofcontents
 \section{Topología inicial}
-Partimos en este proyecto creando una nueva topología en GNS3 equivalente a la del enunciado y que se puede ver en la imagen inferior. Para los routers se utiliza la ios del modelo C7200 de CISCO, con soporte para IPv6. Para los hosts, una imagen linux sin interfaz gráfica y con gestor de paquetes para poder instalar el soporte de mobile IPv6.\par
+Partimos en este proyecto creando una nueva topología en GNS3 equivalente a la del enunciado y que se puede ver en la imagen inferior. Para los routers se utiliza la ios del modelo C7200 de CISCO, con soporte para IPv6. Para los hosts, una imagen linux sin interfaz gráfica y con soporte de mobile IPv6 por mip6d.\par
 
 \begin{center}
 	\includegraphics[scale=0.5]{images/topologyInic.png}
 \end{center}
 
-La configuración básica para que todos los dispositivos y redes tengan conectividad IPv6 entre ellas se puede realizar por medio del fichero de configuración del router directamente, y su equivalente en comandos de la terminal suelen ser las mismas líneas aplicadas en el nivel \textit{configure terminal}. En cuanto a los hosts, como utilizan la autoconfiguración de IPv6 no hace falta configurar manualmente nada.
+La configuración básica para que todos los dispositivos y redes tengan conectividad IPv6 entre ellas se puede realizar por medio del fichero de configuración del router directamente, y su equivalente en comandos de la terminal suelen ser las mismas líneas aplicadas en el nivel \textit{configure terminal}. En cuanto a los hosts, como utilizan la autoconfiguración de IPv6 no hace falta configurar manualmente nada, a lo sumo en \textit{/etc/network/interfaces} que la interfaz tenga en su configuración \textit{inet6 auto}.
 \\
 
 Veamos primero la configuración común de todos los routers:
@@ -69,26 +69,28 @@ Para activar IPv6 es necesario indicarlo antes de la configuración de las inter
 
 Con esto tendríamos activado IPv6 en cada router, pero al intentar hacer \textit{ping} a una interfaz de otra red, vemos que no se recibe respuesta. Esto es porque no hay información en las tablas de rutas más que de las redes conectadas directamente a las interfaces de cada router.
 
-Para cada Sistema Autónomo vamos a usar OSPF con soporte de IPv6. El diseño será de una única área 0 para todo el AS, lo que incluye las subredes en AS\#13 3FE0:0:1::/64 y 3Fe0::/64, y en AS\#50 las subredes 2CAE:0:1::/64 y 2CAE::64. Para ello, debemos activar OSPF en las dos interfaces de los routers AR1 y AR2, y en la interfaz FastEthernet1/0 de los routers R1 y R2 que se pueden ver en la figura de la topología más arriba.
+Para cada Sistema Autónomo vamos a usar OSPFv3 con soporte de IPv6. El diseño será de una única área 0 para todo el AS, lo que incluye las subredes en AS\#13 3FE0:0:1::/64 y 3Fe0::/64, y en AS\#50 las subredes 2CAE:0:1::/64 y 2CAE::64. Activamos OSPF en las dos interfaces de los routers AR1 y AR2, y en la interfaz FastEthernet1/0 de los routers R1 y R2 que se pueden ver en la figura de la topología más arriba.
 
-Las órdenes para activar OSPF en cada router son:
+Las órdenes para activar OSPF en cada router serían:
 
 Dentro de una interfaz que deba soportar OSPF (está dentro del área 0):
-\begin{lstlisting}
-ipv6 ospf 100 area 0
-\end{lstlisting}
 
-Tras la configuración de las interfaces:
-\begin{lstlisting}
+\begin{BVerbatim}
+ipv6 ospf 100 area 0
+\end{BVerbatim}
+
+Y tras la configuración de las interfaces, activamos el proceso de ospf:
+
+\begin{BVerbatim}
 ipv6 router ospf 100
 	router-id a.b.c.d
-\end{lstlisting}
+\end{BVerbatim}
 
 Donde \textit{a.b.c.d} es un valor identificador del router con 32 bits que se puede escribir como una dirección IPv4. Para cada router hemos elegido los identificadores \textit{1.1.1.1}, \textit{2.2.2.2}, \textit{3.3.3.3} y \textit{4.4.4.4} para R1, R2, AR1 y AR2 respectivamente. El valor 100 es indicador del proceso OSPF en el router y puede tomar cualquier otro valor, el tomar 100 es arbitrario.
 
 Llegados a este punto, tenemos conectividad dentro de cada área, de modo que ahora un ping desde R1 a la interfaz de AR1 en la subred 3FE0::/64 funciona, pero de AR1 a R2 o AR2 no, porque no se conoce la ruta. Ahora mismo sólo R1 y R2 podrían hacer ping a las interfaces de la red 2001:ABCD::/64.
 
-Para solucionarlo la forma más rápida es añadir una ruta estática en R1 y R2 a las redes del otro AS con la línea: \textit{ipv6 route 2CAE::/42 Serial2/0} en R1, y la equivalente \textit{ipv6 route 3FE0::/42 Serial2/0} en R2. Finalmente, en la configuración de OSPF, tras el \textit{router-id} añadimos la línea \textit{redistribute static}, sólo en R1 y R2, para que comuniquen con LSA5 (rutas fuera de dominio) que para alcanzar el otro AS a través de ellos hay una ruta.
+Para solucionarlo la forma más rápida es añadir una ruta estática en R1 y R2 a las redes del otro AS con la línea: \textit{ipv6 route 2CAE::/42 Serial2/0} en R1, y la equivalente \textit{ipv6 route 3FE0::/42 Serial2/0} en R2. Finalmente, en la configuración de OSPF, tras el \textit{router-id} añadimos las líneas, sólo en R1 y R2, \textit{redistribute connected} para anunciar la subred 2001:ABCD::/64, y \textit{redistribute static}, para que comuniquen con LSA5 (rutas fuera de dominio) que para alcanzar el otro AS a través de ellos hay una ruta.
 \\
 
 Ahora sí se puede realizar un ping desde cualquier dispositivo a cualquier otro, una vez OSPF ha convergido y compartido todos los mensajes. Pero como la mejora para configurar BGP entre R1 y R2 sobrescribe la configuración estática, mostraré las pruebas en el apartado siguiente.
